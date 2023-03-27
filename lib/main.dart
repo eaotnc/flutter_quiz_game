@@ -1,9 +1,12 @@
 import 'dart:ffi';
 
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:flutter_quiz_game/utils/constant.dart';
 import 'package:flutter_quiz_game/widgets/CategoryCart.dart';
 import 'package:flutter_quiz_game/widgets/HeaderBaged.dart';
+
+import 'models/CategoryModel.dart';
 
 void main() {
   runApp(const MyApp());
@@ -44,13 +47,15 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter quiz game',
-      theme: ThemeData(
-        primarySwatch: Colors.grey,
-      ),
-      home: const MyHomePage(title: ''),
-    );
+    return ChangeNotifierProvider(
+        create: (context) => CategoryModel(),
+        child: MaterialApp(
+          title: 'Flutter quiz game',
+          theme: ThemeData(
+            primarySwatch: Colors.grey,
+          ),
+          home: const MyHomePage(title: ''),
+        ));
   }
 }
 
@@ -67,12 +72,6 @@ class _MyHomePageState extends State<MyHomePage> {
   int _counter = 0;
   String category = 'Film & TV';
   int score = 3253;
-
-  void _incrementCounter() {
-    setState(() {
-      _counter++;
-    });
-  }
 
   @override
   Widget build(BuildContext context) {

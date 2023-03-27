@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_quiz_game/main.dart';
 import 'package:flutter_quiz_game/widgets/QuizHeader.dart';
+import 'package:provider/provider.dart';
 
+import '../models/CategoryModel.dart';
 import '../utils/constant.dart';
 
 class QuizItem {
@@ -9,19 +11,23 @@ class QuizItem {
   final String question;
   final List<String> choice;
   final String correctAnswer;
-  final String? userAnswer;
+  String? userAnswer;
 
-  const QuizItem({
+  QuizItem({
     // required this.quiz_id,
     required this.question,
     required this.choice,
     required this.correctAnswer,
-    this.userAnswer,
   });
+
+  void setUserAnswer(String answer) {
+    print('question!');
+    userAnswer = answer;
+  }
 }
 
-final QuizSet = [
-  const QuizItem(
+final quizSet = [
+  QuizItem(
       question:
           'Who proclaimed Thanksgiving a national holiday in the USA in 1863?',
       choice: [
@@ -31,11 +37,11 @@ final QuizSet = [
         "Thomas Jefferson"
       ],
       correctAnswer: 'Abraham Lincoln'),
-  const QuizItem(
+  QuizItem(
       question: "Which word is defined as 'a commotion or fuss'?",
       choice: ["Donkey Engine", "Taradiddle", "Bibble", "Kerfuffle"],
       correctAnswer: "Kerfuffle"),
-  const QuizItem(
+  QuizItem(
       question: "Which University, founded in 1636, is the oldest in the USA?",
       choice: ["Yale", "Cornell", "Harvard", "Princeton"],
       correctAnswer: "Harvard"),
@@ -58,6 +64,7 @@ class _QuizScreenState extends State<QuizScreen> {
     setState(() {
       userAnswer = answer;
     });
+    quizSet[quizIndex].setUserAnswer(answer);
   }
 
   Widget build(BuildContext context) {
@@ -84,6 +91,14 @@ class _QuizScreenState extends State<QuizScreen> {
               ),
             ),
           ),
+          Consumer<CategoryModel>(
+            builder: (context, model, child) {
+              return Text(
+                'Total price: ${model.selectedCategory}',
+                style: kNormalStyle,
+              );
+            },
+          ),
           const QuizHeader(
             category: 'General',
             imageUrl: 'assets/earth.png',
@@ -104,11 +119,11 @@ class _QuizScreenState extends State<QuizScreen> {
             child:
                 Column(mainAxisAlignment: MainAxisAlignment.start, children: [
               Text(
-                '${quizIndex + 1}. ${QuizSet[quizIndex].question}',
+                '${quizIndex + 1}. ${quizSet[quizIndex].question}',
                 style: kTitleStyle.copyWith(letterSpacing: 0.4),
               ),
               SizedBox(height: 20),
-              for (var choiceItem in QuizSet[quizIndex].choice)
+              for (var choiceItem in quizSet[quizIndex].choice)
                 AnswerButton(
                     choice: choiceItem,
                     userAnswer: userAnswer,
@@ -138,7 +153,7 @@ class _QuizScreenState extends State<QuizScreen> {
                 TextButton(
                   onPressed: () {
                     setState(() {
-                      if (quizIndex < QuizSet.length - 1) {
+                      if (quizIndex < quizSet.length - 1) {
                         quizIndex++;
                       } else {}
                     });

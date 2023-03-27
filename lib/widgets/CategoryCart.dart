@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_quiz_game/models/CategoryModel.dart';
 import 'package:flutter_quiz_game/screens/quiz_screen.dart';
+import 'package:provider/provider.dart';
 
 import '../utils/constant.dart';
 
@@ -17,6 +19,9 @@ class CategoryCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return TextButton(
       onPressed: () {
+        var categoryModel = context.read<CategoryModel>();
+        categoryModel.setSelectedCategory(category);
+
         Navigator.push(
           context,
           MaterialPageRoute(
