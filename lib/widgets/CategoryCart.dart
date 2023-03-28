@@ -20,7 +20,7 @@ class CategoryCard extends StatelessWidget {
     return TextButton(
       onPressed: () {
         var categoryModel = context.read<CategoryModel>();
-        categoryModel.setSelectedCategory(category);
+        categoryModel.setSelectedCategory(category, imageUrl);
 
         Navigator.push(
           context,

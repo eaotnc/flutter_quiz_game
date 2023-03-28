@@ -1,3 +1,6 @@
+import 'dart:convert';
+
+import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:flutter_quiz_game/main.dart';
 import 'package:flutter_quiz_game/widgets/QuizHeader.dart';
@@ -7,27 +10,41 @@ import '../models/CategoryModel.dart';
 import '../utils/constant.dart';
 
 class QuizItem {
-  // final String quiz_id;
+  final String id;
   final String question;
-  final List<String> choice;
+  final List choice;
   final String correctAnswer;
   String? userAnswer;
 
   QuizItem({
-    // required this.quiz_id,
+    required this.id,
     required this.question,
     required this.choice,
     required this.correctAnswer,
   });
 
   void setUserAnswer(String answer) {
-    print('question!');
     userAnswer = answer;
+  }
+
+  factory QuizItem.fromJson(Map<String, dynamic> json) {
+    List choice = json['incorrectAnswers'];
+    choice.add(json['correctAnswer']);
+    choice.shuffle();
+    print('question: ${json['question']}');
+    print('choice: $choice');
+    return QuizItem(
+      id: json['id'],
+      question: json['question'],
+      choice: choice,
+      correctAnswer: json['correctAnswer'],
+    );
   }
 }
 
 final quizSet = [
   QuizItem(
+      id: 'sdf',
       question:
           'Who proclaimed Thanksgiving a national holiday in the USA in 1863?',
       choice: [
@@ -38,10 +55,12 @@ final quizSet = [
       ],
       correctAnswer: 'Abraham Lincoln'),
   QuizItem(
+      id: 'sdf',
       question: "Which word is defined as 'a commotion or fuss'?",
       choice: ["Donkey Engine", "Taradiddle", "Bibble", "Kerfuffle"],
       correctAnswer: "Kerfuffle"),
   QuizItem(
+      id: 'sdf',
       question: "Which University, founded in 1636, is the oldest in the USA?",
       choice: ["Yale", "Cornell", "Harvard", "Princeton"],
       correctAnswer: "Harvard"),
@@ -58,6 +77,49 @@ class _QuizScreenState extends State<QuizScreen> {
   @override
   String userAnswer = '';
   int quizIndex = 0;
+  bool isLoading = false;
+  late List<QuizItem> _quizList = [];
+
+  Future<void> _fetchData() async {
+    try {
+      setState(() {
+        isLoading = true;
+      });
+      final response = await http.get(
+        Uri.parse(
+            'https://the-trivia-api.com/api/questions?categories=general_knowledge&limit=10&region=TH&difficulty=medium'),
+      );
+      if (response.statusCode == 200) {
+        setState(() {
+          _quizList = json
+              .decode(response.body)
+              .map((data) => QuizItem.fromJson(data))
+              .toList();
+        });
+
+        print('quizList: ${_quizList}');
+
+        setState(() {
+          isLoading = false;
+        });
+      }
+    } catch (e) {
+      print(e);
+      setState(() {
+        // _movie = null;
+      });
+    } finally {
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchData();
+  }
 
   void handleOnPressAnswer(String answer) {
     print('answer: ${answer}');
@@ -93,15 +155,11 @@ class _QuizScreenState extends State<QuizScreen> {
           ),
           Consumer<CategoryModel>(
             builder: (context, model, child) {
-              return Text(
-                'Total price: ${model.selectedCategory}',
-                style: kNormalStyle,
+              return QuizHeader(
+                category: model.selectedCategory,
+                imageUrl: model.categoryImageUrl,
               );
             },
-          ),
-          const QuizHeader(
-            category: 'General',
-            imageUrl: 'assets/earth.png',
           ),
           Padding(
             padding: const EdgeInsets.all(15.0),
