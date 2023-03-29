@@ -109,52 +109,10 @@ class _QuizScreenState extends State<QuizScreen> {
     showDialog(
         context: context,
         builder: (BuildContext context) {
-          return Dialog(
-            shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(30.0)),
-            child: Container(
-                height: 150.0,
-                decoration: BoxDecoration(
-                  color: Colors.grey[900],
-                  borderRadius: BorderRadius.circular(20.0),
-                ),
-                padding: EdgeInsets.all(20),
-                child: Center(
-                  child: Column(
-                    children: [
-                      if (_quizList[quizIndex].correctAnswer == userAnswer)
-                        Column(
-                          children: [
-                            Image.asset(
-                              'assets/checked.png',
-                              width: 60,
-                              height: 60,
-                            ),
-                            const Text('Your Correct',
-                                textAlign: TextAlign.center,
-                                style: kNormalStyle),
-                          ],
-                        )
-                      else
-                        Column(
-                          children: [
-                            Image.asset(
-                              'assets/cross.png',
-                              width: 60,
-                              height: 60,
-                            ),
-                            const Text('Your Wrong ',
-                                textAlign: TextAlign.center,
-                                style: kNormalStyle),
-                            Text(
-                                'the correct is: ${_quizList[quizIndex].correctAnswer}',
-                                style: kNormalStyle),
-                          ],
-                        ),
-                    ],
-                  ),
-                )),
-          );
+          return ShowAnswerDialog(
+              quizList: _quizList,
+              quizIndex: quizIndex,
+              userAnswer: userAnswer);
         }).then((value) => handleNextQuestion());
   }
 
@@ -192,6 +150,7 @@ class _QuizScreenState extends State<QuizScreen> {
               child: Text('Level Normal',
                   style: kNormalStyle.copyWith(color: Colors.grey[700])),
             ),
+            if (isLoading) const CircularProgressIndicator(),
             if (_quizList.length > 0 && isComplete == false)
               Container(
                 height: 550,
@@ -222,6 +181,66 @@ class _QuizScreenState extends State<QuizScreen> {
           ],
         ),
       ),
+    );
+  }
+}
+
+class ShowAnswerDialog extends StatelessWidget {
+  const ShowAnswerDialog({
+    super.key,
+    required List<QuizItem> quizList,
+    required this.quizIndex,
+    required this.userAnswer,
+  }) : _quizList = quizList;
+
+  final List<QuizItem> _quizList;
+  final int quizIndex;
+  final String userAnswer;
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30.0)),
+      child: Container(
+          height: 170.0,
+          decoration: BoxDecoration(
+            color: Colors.grey[900],
+            borderRadius: BorderRadius.circular(20.0),
+          ),
+          padding: EdgeInsets.all(20),
+          child: Center(
+            child: Column(
+              children: [
+                if (_quizList[quizIndex].correctAnswer == userAnswer)
+                  Column(
+                    children: [
+                      Image.asset(
+                        'assets/checked.png',
+                        width: 60,
+                        height: 60,
+                      ),
+                      const Text('Your Correct',
+                          textAlign: TextAlign.center, style: kNormalStyle),
+                    ],
+                  )
+                else
+                  Column(
+                    children: [
+                      Image.asset(
+                        'assets/cross.png',
+                        width: 60,
+                        height: 60,
+                      ),
+                      const Text('Your Wrong ',
+                          textAlign: TextAlign.center, style: kNormalStyle),
+                      Text(
+                          'the correct is: ${_quizList[quizIndex].correctAnswer}',
+                          style: kNormalStyle),
+                    ],
+                  ),
+              ],
+            ),
+          )),
     );
   }
 }
