@@ -3,6 +3,7 @@ import 'package:flutter_quiz_game/models/CategoryModel.dart';
 import 'package:flutter_quiz_game/screens/quiz_screen.dart';
 import 'package:provider/provider.dart';
 
+import '../screens/ChooseDifficulty.dart';
 import '../utils/constant.dart';
 
 class CategoryCard extends StatelessWidget {
@@ -25,7 +26,7 @@ class CategoryCard extends StatelessWidget {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => const QuizScreen(),
+            builder: (context) => const ChooseDifficultyScreen(),
           ),
         );
       },

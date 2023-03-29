@@ -1,7 +1,6 @@
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
-import 'package:flutter_quiz_game/screens/summaryPointScreen.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:flutter_quiz_game/main.dart';
@@ -57,7 +56,8 @@ class _QuizScreenState extends State<QuizScreen> {
   bool isComplete = false;
   List<QuizItem> _quizList = [];
 
-  Future<void> _fetchData(String category) async {
+  Future<void> _fetchData(String category, String difficulty) async {
+    print('difficulty: ${difficulty}');
     print('category: ${category}');
     try {
       setState(() {
@@ -65,7 +65,7 @@ class _QuizScreenState extends State<QuizScreen> {
       });
       final response = await http.get(
         Uri.parse(
-            'https://the-trivia-api.com/api/questions?categories=${category}&limit=10&difficulty=easy'),
+            'https://the-trivia-api.com/api/questions?categories=${category}&limit=10&difficulty=$difficulty'),
       );
       if (response.statusCode == 200) {
         List jsonMap = jsonDecode(response.body);
@@ -94,17 +94,13 @@ class _QuizScreenState extends State<QuizScreen> {
 
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
       var categoryModel = Provider.of<CategoryModel>(context, listen: false);
-      _fetchData(categoryModel.selectedCategory);
+      _fetchData(categoryModel.selectedCategory, categoryModel.difficulty);
     });
   }
 
   void handleOnPressAnswer(String answer) {
     int newScore =
         (_quizList[quizIndex].correctAnswer == answer) ? score + 1 : score;
-    print('userAnswer: ${userAnswer}');
-    print(
-        '_quizList[quizIndex].correctAnswer: ${_quizList[quizIndex].correctAnswer}');
-    print('newScore: ${newScore}');
     setState(() {
       userAnswer = answer;
       score = newScore;
