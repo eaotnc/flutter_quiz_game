@@ -55,7 +55,7 @@ class _QuizScreenState extends State<QuizScreen> {
   int quizIndex = 0;
   int score = 0;
   bool isLoading = false;
-
+  bool isComplete = false;
   List<QuizItem> _quizList = [];
 
   Future<void> _fetchData(String category) async {
@@ -104,6 +104,55 @@ class _QuizScreenState extends State<QuizScreen> {
       userAnswer = answer;
     });
     _quizList[quizIndex].setUserAnswer(answer);
+    showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return Dialog(
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(30.0)),
+            child: Container(
+                height: 150.0,
+                decoration: BoxDecoration(
+                  color: Colors.grey[900],
+                  borderRadius: BorderRadius.circular(20.0),
+                ),
+                padding: EdgeInsets.all(20),
+                child: Center(
+                  child: Column(
+                    children: [
+                      if (_quizList[quizIndex].correctAnswer == userAnswer)
+                        Column(
+                          children: [
+                            Image.asset(
+                              'assets/checked.png',
+                              width: 60,
+                              height: 60,
+                            ),
+                            const Text('Your Correct',
+                                textAlign: TextAlign.center,
+                                style: kNormalStyle),
+                          ],
+                        )
+                      else
+                        Column(
+                          children: [
+                            Image.asset(
+                              'assets/cross.png',
+                              width: 60,
+                              height: 60,
+                            ),
+                            const Text('Your Wrong the correct is:',
+                                textAlign: TextAlign.center,
+                                style: kNormalStyle),
+                            Text(_quizList[quizIndex].correctAnswer,
+                                style: kNormalStyle),
+                          ],
+                        ),
+                    ],
+                  ),
+                )),
+          );
+        }).then((value) => handleNextQuestion());
   }
 
   void handleNextQuestion() {
@@ -113,7 +162,11 @@ class _QuizScreenState extends State<QuizScreen> {
           quizIndex++;
           userAnswer = '';
         });
-      } else {}
+      } else {
+        setState(() {
+          isComplete = true;
+        });
+      }
     });
   }
 
@@ -136,10 +189,10 @@ class _QuizScreenState extends State<QuizScreen> {
               child: Text('Level Normal',
                   style: kNormalStyle.copyWith(color: Colors.grey[700])),
             ),
-            if (_quizList.length > 0)
+            if (_quizList.length > 0 && isComplete == false)
               Container(
                 height: 550,
-                width: double.infinity - 40,
+                width: double.infinity,
                 margin:
                     const EdgeInsets.symmetric(horizontal: 20.0, vertical: 5.0),
                 padding: const EdgeInsets.all(20.0),
@@ -160,48 +213,43 @@ class _QuizScreenState extends State<QuizScreen> {
                             choice: choiceItem,
                             userAnswer: userAnswer,
                             handleOnPressAnswer: handleOnPressAnswer),
-                      if (userAnswer != '')
-                        Center(
+                    ]),
+              ),
+            if (isComplete)
+              Container(
+                height: 550,
+                width: double.infinity,
+                margin:
+                    const EdgeInsets.symmetric(horizontal: 20.0, vertical: 5.0),
+                padding: const EdgeInsets.all(20.0),
+                decoration: BoxDecoration(
+                  color: Colors.grey[900],
+                  borderRadius: BorderRadius.circular(20.0),
+                ),
+                child: Column(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Your Complete The Quiz',
+                        style: kTitleStyle.copyWith(letterSpacing: 0.4),
+                      ),
+                      TextButton(
+                          onPressed: () => {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => const MyHomePage(),
+                                  ),
+                                )
+                              },
                           child: Container(
-                              decoration: BoxDecoration(
-                                color: Colors.grey[800],
-                                borderRadius: BorderRadius.circular(20.0),
-                              ),
-                              padding: EdgeInsets.all(20),
-                              child: Column(
-                                children: [
-                                  if (_quizList[quizIndex].correctAnswer ==
-                                      userAnswer)
-                                    Column(
-                                      children: [
-                                        Image.asset(
-                                          'assets/checked.png',
-                                          width: 60,
-                                          height: 60,
-                                        ),
-                                        const Text('Your Correct',
-                                            textAlign: TextAlign.center,
-                                            style: kNormalStyle),
-                                      ],
-                                    )
-                                  else
-                                    Column(
-                                      children: [
-                                        Image.asset(
-                                          'assets/cross.png',
-                                          width: 60,
-                                          height: 60,
-                                        ),
-                                        const Text('Your Wrong the correct is:',
-                                            textAlign: TextAlign.center,
-                                            style: kNormalStyle),
-                                        Text(_quizList[quizIndex].correctAnswer,
-                                            style: kNormalStyle),
-                                      ],
-                                    ),
-                                ],
-                              )),
-                        ),
+                            padding: EdgeInsets.all(20),
+                            decoration: BoxDecoration(
+                                color: Colors.yellow[800],
+                                borderRadius: BorderRadius.circular(20)),
+                            child:
+                                Text('Back To HomePage', style: kNormalStyle),
+                          ))
                     ]),
               ),
             Container(
