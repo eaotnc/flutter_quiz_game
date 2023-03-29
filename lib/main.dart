@@ -3,7 +3,7 @@ import 'dart:ffi';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_quiz_game/utils/constant.dart';
-import 'package:flutter_quiz_game/widgets/CategoryCart.dart';
+import 'package:flutter_quiz_game/widgets/CategoryCard.dart';
 import 'package:flutter_quiz_game/widgets/HeaderBaged.dart';
 
 import 'models/CategoryModel.dart';
@@ -24,7 +24,7 @@ class Category {
 
 final categories = [
   const Category(
-    name: 'Film & TV',
+    name: 'Film and TV',
     imageUrl: 'assets/movie.png',
   ),
   const Category(
@@ -70,7 +70,6 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   int _counter = 0;
-  String category = 'Film & TV';
   int score = 3253;
 
   @override

@@ -5,14 +5,16 @@ import 'package:flutter_quiz_game/screens/quiz_screen.dart';
 import '../utils/constant.dart';
 
 class QuizHeader extends StatelessWidget {
-  const QuizHeader({
+  QuizHeader({
     super.key,
     required this.category,
     required this.imageUrl,
+    this.isComplete,
   });
 
   final String category;
   final String imageUrl;
+  bool? isComplete;
 
   @override
   Widget build(BuildContext context) {
@@ -50,6 +52,12 @@ class QuizHeader extends StatelessWidget {
                   style: kTitleStyle.copyWith(
                       fontWeight: FontWeight.normal, letterSpacing: .5),
                 ),
+                if (isComplete != null)
+                  Image.asset(
+                    imageUrl,
+                    width: 60,
+                    height: 60,
+                  ),
               ],
             )
           ],

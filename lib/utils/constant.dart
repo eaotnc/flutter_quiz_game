@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 const kTitleStyle = TextStyle(
   fontSize: 25,
   fontWeight: FontWeight.bold,
-  letterSpacing: 1.5,
+  letterSpacing: 0.8,
   color: Colors.white,
 );
 

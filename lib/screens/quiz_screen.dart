@@ -1,5 +1,7 @@
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
+import 'package:flutter_quiz_game/screens/summaryPointScreen.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:flutter_quiz_game/main.dart';
@@ -31,8 +33,6 @@ class QuizItem {
     List choice = json['incorrectAnswers'];
     choice.add(json['correctAnswer']);
     choice.shuffle();
-    print('question: ${json['question']}');
-    print('choice: $choice');
     return QuizItem(
       id: json['id'],
       question: json['question'],
@@ -41,30 +41,6 @@ class QuizItem {
     );
   }
 }
-
-final quizSet = [
-  QuizItem(
-      id: 'sdf',
-      question:
-          'Who proclaimed Thanksgiving a national holiday in the USA in 1863?',
-      choice: [
-        "Abraham Lincoln",
-        "George Washington",
-        "Ronald Regan",
-        "Thomas Jefferson"
-      ],
-      correctAnswer: 'Abraham Lincoln'),
-  QuizItem(
-      id: 'sdf',
-      question: "Which word is defined as 'a commotion or fuss'?",
-      choice: ["Donkey Engine", "Taradiddle", "Bibble", "Kerfuffle"],
-      correctAnswer: "Kerfuffle"),
-  QuizItem(
-      id: 'sdf',
-      question: "Which University, founded in 1636, is the oldest in the USA?",
-      choice: ["Yale", "Cornell", "Harvard", "Princeton"],
-      correctAnswer: "Harvard"),
-];
 
 class QuizScreen extends StatefulWidget {
   const QuizScreen({Key? key}) : super(key: key);
@@ -77,29 +53,27 @@ class _QuizScreenState extends State<QuizScreen> {
   @override
   String userAnswer = '';
   int quizIndex = 0;
+  int score = 0;
   bool isLoading = false;
-  late List<QuizItem> _quizList = [];
 
-  Future<void> _fetchData() async {
+  List<QuizItem> _quizList = [];
+
+  Future<void> _fetchData(String category) async {
+    print('category: ${category}');
     try {
       setState(() {
         isLoading = true;
       });
       final response = await http.get(
         Uri.parse(
-            'https://the-trivia-api.com/api/questions?categories=general_knowledge&limit=10&region=TH&difficulty=medium'),
+            'https://the-trivia-api.com/api/questions?categories=${category}&limit=10&difficulty=easy'),
       );
       if (response.statusCode == 200) {
+        List jsonMap = jsonDecode(response.body);
+        List<QuizItem> questions =
+            jsonMap.map((data) => QuizItem.fromJson(data)).toList();
         setState(() {
-          _quizList = json
-              .decode(response.body)
-              .map((data) => QuizItem.fromJson(data))
-              .toList();
-        });
-
-        print('quizList: ${_quizList}');
-
-        setState(() {
+          _quizList = questions;
           isLoading = false;
         });
       }
@@ -118,114 +92,160 @@ class _QuizScreenState extends State<QuizScreen> {
   @override
   void initState() {
     super.initState();
-    _fetchData();
+
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+      var categoryModel = Provider.of<CategoryModel>(context, listen: false);
+      _fetchData(categoryModel.selectedCategory);
+    });
   }
 
   void handleOnPressAnswer(String answer) {
-    print('answer: ${answer}');
     setState(() {
       userAnswer = answer;
     });
-    quizSet[quizIndex].setUserAnswer(answer);
+    _quizList[quizIndex].setUserAnswer(answer);
+  }
+
+  void handleNextQuestion() {
+    setState(() {
+      if (quizIndex < _quizList.length - 1) {
+        setState(() {
+          quizIndex++;
+          userAnswer = '';
+        });
+      } else {}
+    });
   }
 
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
-      body: Column(
-        children: [
-          TextButton(
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const MyHomePage(),
+      body: SafeArea(
+        child: Column(
+          children: [
+            Consumer<CategoryModel>(
+              builder: (context, model, child) {
+                return QuizHeader(
+                  category: model.selectedCategory,
+                  imageUrl: model.categoryImageUrl,
+                );
+              },
+            ),
+            Padding(
+              padding: const EdgeInsets.all(15.0),
+              child: Text('Level Normal',
+                  style: kNormalStyle.copyWith(color: Colors.grey[700])),
+            ),
+            if (_quizList.length > 0)
+              Container(
+                height: 550,
+                width: double.infinity - 40,
+                margin:
+                    const EdgeInsets.symmetric(horizontal: 20.0, vertical: 5.0),
+                padding: const EdgeInsets.all(20.0),
+                decoration: BoxDecoration(
+                  color: Colors.grey[900],
+                  borderRadius: BorderRadius.circular(20.0),
                 ),
-              );
-            },
-            child: Container(
-              height: 60,
-              margin: const EdgeInsets.fromLTRB(0, 20, double.infinity, 0),
-              child: const Icon(
-                Icons.chevron_left,
-                color: Colors.grey,
-                size: 40.0,
+                child: Column(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      Text(
+                        '${quizIndex + 1}. ${_quizList[quizIndex].question}',
+                        style: kTitleStyle.copyWith(letterSpacing: 0.4),
+                      ),
+                      SizedBox(height: 20),
+                      for (var choiceItem in _quizList[quizIndex].choice)
+                        AnswerButton(
+                            choice: choiceItem,
+                            userAnswer: userAnswer,
+                            handleOnPressAnswer: handleOnPressAnswer),
+                      if (userAnswer != '')
+                        Center(
+                          child: Container(
+                              decoration: BoxDecoration(
+                                color: Colors.grey[800],
+                                borderRadius: BorderRadius.circular(20.0),
+                              ),
+                              padding: EdgeInsets.all(20),
+                              child: Column(
+                                children: [
+                                  if (_quizList[quizIndex].correctAnswer ==
+                                      userAnswer)
+                                    Column(
+                                      children: [
+                                        Image.asset(
+                                          'assets/checked.png',
+                                          width: 60,
+                                          height: 60,
+                                        ),
+                                        const Text('Your Correct',
+                                            textAlign: TextAlign.center,
+                                            style: kNormalStyle),
+                                      ],
+                                    )
+                                  else
+                                    Column(
+                                      children: [
+                                        Image.asset(
+                                          'assets/cross.png',
+                                          width: 60,
+                                          height: 60,
+                                        ),
+                                        const Text('Your Wrong the correct is:',
+                                            textAlign: TextAlign.center,
+                                            style: kNormalStyle),
+                                        Text(_quizList[quizIndex].correctAnswer,
+                                            style: kNormalStyle),
+                                      ],
+                                    ),
+                                ],
+                              )),
+                        ),
+                    ]),
               ),
-            ),
-          ),
-          Consumer<CategoryModel>(
-            builder: (context, model, child) {
-              return QuizHeader(
-                category: model.selectedCategory,
-                imageUrl: model.categoryImageUrl,
-              );
-            },
-          ),
-          Padding(
-            padding: const EdgeInsets.all(15.0),
-            child: Text('Level Normal',
-                style: kNormalStyle.copyWith(color: Colors.grey[700])),
-          ),
-          Container(
-            width: double.infinity - 40,
-            margin: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 5.0),
-            padding: const EdgeInsets.all(20.0),
-            decoration: BoxDecoration(
-              color: Colors.grey[900],
-              borderRadius: BorderRadius.circular(20.0),
-            ),
-            child:
-                Column(mainAxisAlignment: MainAxisAlignment.start, children: [
-              Text(
-                '${quizIndex + 1}. ${quizSet[quizIndex].question}',
-                style: kTitleStyle.copyWith(letterSpacing: 0.4),
+            Container(
+              margin: const EdgeInsets.symmetric(horizontal: 30.0),
+              padding: const EdgeInsets.symmetric(horizontal: 40.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  TextButton(
+                    onPressed: () {
+                      setState(() {
+                        if (quizIndex > 0) {
+                          quizIndex--;
+                        } else {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const MyHomePage(),
+                            ),
+                          );
+                        }
+                      });
+                    },
+                    child: Image.asset(
+                      'assets/previous.png',
+                      width: 50,
+                      height: 50,
+                    ),
+                  ),
+                  TextButton(
+                    onPressed: () {
+                      handleNextQuestion();
+                    },
+                    child: Image.asset(
+                      'assets/next.png',
+                      width: 50,
+                      height: 50,
+                    ),
+                  ),
+                ],
               ),
-              SizedBox(height: 20),
-              for (var choiceItem in quizSet[quizIndex].choice)
-                AnswerButton(
-                    choice: choiceItem,
-                    userAnswer: userAnswer,
-                    handleOnPressAnswer: handleOnPressAnswer),
-            ]),
-          ),
-          Container(
-            margin: const EdgeInsets.symmetric(horizontal: 30.0),
-            padding: const EdgeInsets.symmetric(horizontal: 40.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                TextButton(
-                  onPressed: () {
-                    setState(() {
-                      if (quizIndex > 0) {
-                        quizIndex--;
-                      }
-                    });
-                  },
-                  child: Image.asset(
-                    'assets/previous.png',
-                    width: 50,
-                    height: 50,
-                  ),
-                ),
-                TextButton(
-                  onPressed: () {
-                    setState(() {
-                      if (quizIndex < quizSet.length - 1) {
-                        quizIndex++;
-                      } else {}
-                    });
-                  },
-                  child: Image.asset(
-                    'assets/next.png',
-                    width: 50,
-                    height: 50,
-                  ),
-                ),
-              ],
-            ),
-          )
-        ],
+            )
+          ],
+        ),
       ),
     );
   }
@@ -256,7 +276,7 @@ class _AnswerButtonState extends State<AnswerButton> {
       },
       child: AnimatedContainer(
         width: double.infinity - 20,
-        padding: const EdgeInsets.all(20.0),
+        padding: const EdgeInsets.all(15.0),
         duration: const Duration(milliseconds: 500),
         decoration: BoxDecoration(
           color: widget.userAnswer == widget.choice
