@@ -50,7 +50,6 @@ class QuizScreen extends StatefulWidget {
 }
 
 class _QuizScreenState extends State<QuizScreen> {
-  @override
   String userAnswer = '';
   int quizIndex = 0;
   int score = 0;
@@ -100,8 +99,15 @@ class _QuizScreenState extends State<QuizScreen> {
   }
 
   void handleOnPressAnswer(String answer) {
+    int newScore =
+        (_quizList[quizIndex].correctAnswer == answer) ? score + 1 : score;
+    print('userAnswer: ${userAnswer}');
+    print(
+        '_quizList[quizIndex].correctAnswer: ${_quizList[quizIndex].correctAnswer}');
+    print('newScore: ${newScore}');
     setState(() {
       userAnswer = answer;
+      score = newScore;
     });
     _quizList[quizIndex].setUserAnswer(answer);
     showDialog(
@@ -141,10 +147,11 @@ class _QuizScreenState extends State<QuizScreen> {
                               width: 60,
                               height: 60,
                             ),
-                            const Text('Your Wrong the correct is:',
+                            const Text('Your Wrong ',
                                 textAlign: TextAlign.center,
                                 style: kNormalStyle),
-                            Text(_quizList[quizIndex].correctAnswer,
+                            Text(
+                                'the correct is: ${_quizList[quizIndex].correctAnswer}',
                                 style: kNormalStyle),
                           ],
                         ),
@@ -215,86 +222,86 @@ class _QuizScreenState extends State<QuizScreen> {
                             handleOnPressAnswer: handleOnPressAnswer),
                     ]),
               ),
-            if (isComplete)
-              Container(
-                height: 550,
-                width: double.infinity,
-                margin:
-                    const EdgeInsets.symmetric(horizontal: 20.0, vertical: 5.0),
-                padding: const EdgeInsets.all(20.0),
-                decoration: BoxDecoration(
-                  color: Colors.grey[900],
-                  borderRadius: BorderRadius.circular(20.0),
-                ),
-                child: Column(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Your Complete The Quiz',
-                        style: kTitleStyle.copyWith(letterSpacing: 0.4),
-                      ),
-                      TextButton(
-                          onPressed: () => {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => const MyHomePage(),
-                                  ),
-                                )
-                              },
-                          child: Container(
-                            padding: EdgeInsets.all(20),
-                            decoration: BoxDecoration(
-                                color: Colors.yellow[800],
-                                borderRadius: BorderRadius.circular(20)),
-                            child:
-                                Text('Back To HomePage', style: kNormalStyle),
-                          ))
-                    ]),
-              ),
-            Container(
-              margin: const EdgeInsets.symmetric(horizontal: 30.0),
-              padding: const EdgeInsets.symmetric(horizontal: 40.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  TextButton(
-                    onPressed: () {
-                      setState(() {
-                        if (quizIndex > 0) {
-                          quizIndex--;
-                        } else {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const MyHomePage(),
-                            ),
-                          );
-                        }
-                      });
-                    },
-                    child: Image.asset(
-                      'assets/previous.png',
-                      width: 50,
-                      height: 50,
-                    ),
-                  ),
-                  TextButton(
-                    onPressed: () {
-                      handleNextQuestion();
-                    },
-                    child: Image.asset(
-                      'assets/next.png',
-                      width: 50,
-                      height: 50,
-                    ),
-                  ),
-                ],
-              ),
-            )
+            if (isComplete) CompleteQuizWidget(score: score),
           ],
         ),
       ),
+    );
+  }
+}
+
+class CompleteQuizWidget extends StatelessWidget {
+  const CompleteQuizWidget({
+    super.key,
+    required this.score,
+  });
+
+  final int score;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 550,
+      width: double.infinity,
+      margin: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 5.0),
+      padding: const EdgeInsets.all(20.0),
+      decoration: BoxDecoration(
+        color: Colors.grey[900],
+        borderRadius: BorderRadius.circular(20.0),
+      ),
+      child: Column(mainAxisAlignment: MainAxisAlignment.start, children: [
+        Text(
+          'Your Completed The Quiz',
+          style: kTitleStyle.copyWith(letterSpacing: 0.4),
+        ),
+        const SizedBox(
+          height: 50,
+        ),
+        if (score < 5)
+          Image.asset(
+            'assets/sad.png',
+            width: 120,
+            height: 120,
+          )
+        else if (score == 5)
+          Image.asset(
+            'assets/neutral.png',
+            width: 120,
+            height: 120,
+          )
+        else if (score > 5)
+          Image.asset(
+            'assets/thumbs-ups.png',
+            width: 120,
+            height: 120,
+          ),
+        const SizedBox(
+          height: 50,
+        ),
+        Text(
+          'Total Score: $score',
+          style: kTitleStyle.copyWith(letterSpacing: 0.4),
+        ),
+        const SizedBox(
+          height: 50,
+        ),
+        TextButton(
+            onPressed: () => {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const MyHomePage(),
+                    ),
+                  )
+                },
+            child: Container(
+              padding: EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                  color: Colors.yellow[800],
+                  borderRadius: BorderRadius.circular(20)),
+              child: Text('Back To HomePage', style: kNormalStyle),
+            ))
+      ]),
     );
   }
 }
